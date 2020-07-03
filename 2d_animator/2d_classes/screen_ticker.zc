@@ -195,7 +195,7 @@ protected virtual ui void render_2d_entities(double tick_fraction = 0)
 }
 
 //wrapper around  gzdoom drawing API
-//DO NOT TOUCH IT OR IT WILL BREAK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//DO NOT TOUCH IT OTHERWISE IT WILL BREAK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 private ui void draw_entity_texture(textureid tex, vector2 pos = (0, 0), vector2 scale = (1, 1), double alpha = 1)
 {
     if(tex)
