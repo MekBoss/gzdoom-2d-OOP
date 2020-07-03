@@ -1,0 +1,4 @@
+gameinfo
+{
+    addeventhandlers = "screen_animator"
+}

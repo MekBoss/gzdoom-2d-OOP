@@ -1,0 +1,4 @@
+enum screen_layers
+{
+    DEFAULT_LAYER = 0
+};

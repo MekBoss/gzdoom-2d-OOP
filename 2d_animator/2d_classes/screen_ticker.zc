@@ -1,0 +1,217 @@
+//event handler which think for all 2d entities and store them
+class screen_animator : staticeventhandler
+{
+//store here all parsed states for 2d entities
+private array<entity_state> entity_states;
+//read 2d_states lump and construct states for 2d entities
+private void read_state_lump(string lump_name = "2d_states")
+{}
+
+override void onregister()
+{
+    read_state_lump();
+}
+
+
+
+//create fresh entity for screen
+//static so that it can be acesset from everywhere
+ui screen_entity create_new_enity(name type = '', vector2 pos = (0, 0), int layer = 0)
+{
+    screen_entity se = screen_entity(new(type)).init(self, pos, layer);
+
+    if(se)
+    {
+        push_entity(se);
+        return se;
+    }
+
+    else
+    {
+        console.printf("no screen entity");
+        return null;
+    }
+}
+
+
+
+//store here layers, which contain 2d entities with specific layer number
+//should be sorted from layer with lower number to greater
+private ui array<layer_things> all_layers;
+
+//push newly created entity in some layer
+ui void push_entity(screen_entity se = null)
+{
+    if(se)
+    {
+        let ent = screen_entity(se);
+
+        //get sntity layer number here
+        int ent_layer = se.get_layer();
+        //if there are et least one layer exist
+        if(all_layers.size() > 0)
+        {
+            for(uint i = 0; i <= all_layers.size(); i++)
+            {
+                //iterate through all exisiting layers but layer number still didnt match?
+                //entity from new, unitialized layer, so create it here
+                if(i == all_layers.size() )
+                {
+                    layer_things lt = layer_things(new("layer_things") );
+
+                    lt.layer_number = ent_layer;
+                    lt.layer_entites.push(ent);
+                    all_layers.push(lt);
+                    break;
+                }
+
+                if(all_layers[i])
+                {
+                    let specific_layer = layer_things(all_layers[i]);
+
+                    if(specific_layer.layer_number == ent_layer)
+                    {
+                        specific_layer.layer_entites.push(ent);
+                        break;
+                    }
+                }
+            }
+        }
+
+        //there are no layers at all, create first one
+        else
+        {
+            layer_things lt = layer_things(new("layer_things") );
+
+            lt.layer_number = ent_layer;
+            lt.layer_entites.push(ent);
+            all_layers.push(lt);
+        }
+    }
+}
+
+ui bool init_entity;
+
+//gzdoom native function which used for 2d entities ticking
+//happens each 1/35 second
+override void UiTick()
+{
+    if(level.time <= 0 )
+    {
+        init_entity = false;
+        return;
+    }
+
+    if(!init_entity)
+    {
+        create_new_enity("fire_spawner");        
+        init_entity = true;
+    }
+    tick_2d_entities();
+}
+
+//tick all 2d entities here
+protected virtual ui void tick_2d_entities()
+{
+    if(freeze_animation) return;
+
+    if(all_layers.size() > 0)
+    {
+        for(uint i = 0; i < all_layers.size(); i++ )
+        {
+            if(all_layers[i])
+            {
+                let specific_layer = layer_things(all_layers[i]);
+            
+                if(specific_layer.layer_entites.size() > 0)
+                {
+                    //console.printf("layer %i, have %i entities", specific_layer.layer_number, specific_layer.layer_entites.size() );
+                    for(uint j = 0; j < specific_layer.layer_entites.size(); j++)
+                    {
+                        if(specific_layer.layer_entites[j])
+                        {
+                            let entity = screen_entity(specific_layer.layer_entites[j]);
+                            entity.screen_entity_tick();
+                        }
+
+                        else
+                        {
+                            specific_layer.layer_entites.delete(j);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+//check is all layers ordered from smaller to greater/vice versa
+private ui void check_layer_order()
+{}
+
+
+
+//gzdoom native function which used for 2d entities rendering
+//happens SUDDENLY each render frame
+override void RenderOverlay(RenderEvent e)
+{
+    if(level.time <= 0) return;
+    render_2d_entities(e.FracTic);
+}
+
+
+//render all 2d entities here
+protected virtual ui void render_2d_entities(double tick_fraction = 0)
+{
+    if(freeze_animation) return;
+
+    if(all_layers.size() > 0)
+    {
+        for(uint i = 0; i < all_layers.size(); i++ )
+        {
+            if(all_layers[i])
+            {
+                let specific_layer = layer_things(all_layers[i]);
+            
+                for(uint j = 0; j < specific_layer.layer_entites.size(); j++)
+                {
+                    if(specific_layer.layer_entites[j])
+                    {
+                        let entity = screen_entity(specific_layer.layer_entites[j]);
+                    
+                        draw_entity_texture(
+                            entity.get_texture(),
+                            entity.get_pos() + (entity.get_velocity() * tick_fraction),
+                            entity.get_scale(),
+                            entity.get_alpha()
+                        );
+                    
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+//wrapper around  gzdoom drawing API
+//DO NOT TOUCH IT OR IT WILL BREAK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+private ui void draw_entity_texture(textureid tex, vector2 pos = (0, 0), vector2 scale = (1, 1), double alpha = 1)
+{
+    if(tex)
+    {
+        int x_size, y_size;
+        [x_size, y_size] = TexMan.getsize(tex);
+
+        Screen.DrawTexture(tex, false, int(pos.x), int(pos.y), DTA_Alpha, alpha, DTA_CenterOffset, true, DTA_DestWidth, int(x_size * scale.x), DTA_DestHeight, int(y_size * scale.y) );
+    }
+}
+
+}
+
+//
+class layer_things ui
+{
+    int layer_number;
+    array<screen_entity> layer_entites;
+}

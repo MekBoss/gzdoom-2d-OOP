@@ -1,0 +1,1 @@
+server bool freeze_animation = false;

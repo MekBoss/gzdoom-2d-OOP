@@ -1,0 +1,10 @@
+#include "2d_animator/lump_parser/parser_base.zc"
+#include "2d_animator/lump_parser/constants.zc"
+
+
+#include "2d_animator/2d_classes/state_base.zc"
+#include "2d_animator/2d_classes/screen_ticker.zc"
+#include "2d_animator/2d_classes/screen_entity.zc"
+#include "2d_animator/2d_classes/test_entities.zc"
+#include "2d_animator/2d_classes/constants.zc"
+

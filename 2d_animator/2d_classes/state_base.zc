@@ -1,0 +1,7 @@
+//state struct which should be filled on "2d ticker" initialization
+class entity_state
+{
+    name state_name;//name of the state(used for state searching)
+    textureid state_picture;//picture for the state
+    int state_time;//time (in 1/35 seconds)  in which screen entity should be before destroying/going to the next state
+}

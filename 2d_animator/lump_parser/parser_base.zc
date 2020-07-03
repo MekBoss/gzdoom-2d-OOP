@@ -1,0 +1,31 @@
+//wrapper for gzdoom native readlump function
+//supossed to parse lumps with C-like syntax
+class lump_parser
+{
+
+//store parsed lump here
+private string parsed_lump;
+
+void read_lump(string lump_name = "")
+{
+    //check for lump specific name...
+    int lump_number = wads.FindLump(lump_name);
+    if(lump_number > 0)
+    {
+        ///...and read it if it exist
+        parsed_lump = wads.ReadLump(lump_number);
+        
+        //store position of where state declare, where if begins and ends (curved brackets for last two, tis one {} )
+        //and size of a string from lump
+        int state_declaration_index, begin_index, end_index, lump_size;
+
+        lump_size = parsed_lump.Length();
+
+        if(parsed_lump)
+        {
+            state_declaration_index = parsed_lump.IndexOf("state");
+        }
+    }
+}
+
+}

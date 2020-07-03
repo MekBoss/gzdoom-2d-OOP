@@ -1,0 +1,5 @@
+const comment_start = "/*";
+const comment_end = "*/";
+const comment_line = "//";
+
+
