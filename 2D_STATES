@@ -1,34 +1,10 @@
-/*
-format of the entity definition are
+//this should be located in the top of the file
+original_resolution = (1234, 987);
 
-entity "name of the entity"
+
+class_2d thing
 {
-    properties
-    {
-        scale = (vector2 here);
-        pos = (vector2 here);
-    }
-
-    states
-    {
-        "texture name" "tick amount";
-    }
-}
-
-*/
-
-object a
-{
-    
-    
-    texture = wot;
-    time = 1;
-    next_state = noll;
-}
-
-state b
-{
-    texture = zis;
-    time = 2;
-    next_state = null;
+one = 1;
+second = 3;
+test = 188;
 }

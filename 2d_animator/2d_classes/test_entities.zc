@@ -10,71 +10,41 @@ override screen_entity init(staticeventhandler owner, vector2 pos, int spawn_lay
 }
 
 screen_entity fire;
-override void screen_entity_tick()
+override void entity_logic_tick()
 {
-    if(time >= random(3, 5) )
+    if(tics >= random(3, 5) )
     {
-        fire = screen_animator(ticker).create_new_enity("burning_flame", self.screen_pos);
-        fire.velocity = (8 + frandom(-1, 1), -8 + frandom(-1, 1));
+        fire = screen_animator(ticker).create_new_enity("burning_flame", (screen_pos + (100, -80) ) );
+        fire.velocity = (10 + frandom(-1, 1), -8 + frandom(-1, 1));
 
-        fire = screen_animator(ticker).create_new_enity("burning_flame", self.screen_pos);
-        fire.velocity = (-8 + frandom(-1, 1), -8 + frandom(-1, 1));
+        fire = screen_animator(ticker).create_new_enity("burning_flame", (screen_pos + (-100, -100)));
+        fire.velocity = (-10 + frandom(-1, 1), -10 + frandom(-1, 1));
 
-        fire = screen_animator(ticker).create_new_enity("burning_flame", self.screen_pos);
-        fire.velocity = (0 + frandom(-1, 1), 8 + frandom(-1, 1));
+        fire = screen_animator(ticker).create_new_enity("burning_flame", (screen_pos + (0, 100)));
+        fire.velocity = (0 + frandom(-1, 1), 10 + frandom(-1, 1));
 
-        time = 0;
+        tics = 0;
     }
 
-    time++;
+    tics++;
 }
 
 }
 
 class burning_flame : screen_entity
 {
-protected int counter;
-
-protected textureid fire_1, fire_2, fire_3, fire_4, fire_5, fire_6, fire_7,fire_8;
-
 override screen_entity init(staticeventhandler owner, vector2 pos)
 {
-    init_defaults(pos);
-    alpha = frandom(0.5, 0.9);
-    
-    fire_1 = texman.CheckForTexture("fire_1", TexMan.TYPE_ANY);
-    fire_2 = texman.CheckForTexture("fire_2", TexMan.TYPE_ANY);
-    fire_3 = texman.CheckForTexture("fire_3", TexMan.TYPE_ANY);
-    fire_4 = texman.CheckForTexture("fire_4", TexMan.TYPE_ANY);
-    fire_5 = texman.CheckForTexture("fire_5", TexMan.TYPE_ANY);
-    fire_6 = texman.CheckForTexture("fire_6", TexMan.TYPE_ANY);
-    fire_7 = texman.CheckForTexture("fire_7", TexMan.TYPE_ANY);
-    fire_8 = texman.CheckForTexture("fire_8", TexMan.TYPE_ANY);
+    init_defaults();
 
-    pic = fire_1;
+    screen_pos = pos;
+    alpha = frandom(0.5, 0.9);
+    entity_flag |= SEF_ISTEXTURE;
+
 
     velocity = (random(-10, 10), random(-10, 10) );
+    console.printf("pos is %f %f", screen_pos.x, screen_pos.y);
     return self;
-}
-
-override void screen_entity_tick()
-{
-    counter ++;
-
-    screen_pos += velocity;
-
-    if( (counter % 3) == 0)
-    {
-        if(pic == fire_1) pic = fire_2;
-        else if(pic == fire_2) pic = fire_3;
-        else if(pic == fire_3) pic = fire_4;
-        else if(pic == fire_4) pic = fire_5;
-        else if(pic == fire_5) pic = fire_6;
-        else if(pic == fire_6) pic = fire_7;
-        else if(pic == fire_7) pic = fire_8;
-        else if(pic == fire_8) {destroy(); return;}
-        scale *= 1.15;
-    }
 }
 
 }

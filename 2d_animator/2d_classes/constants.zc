@@ -2,3 +2,9 @@ enum screen_layers
 {
     DEFAULT_LAYER = 0
 };
+
+enum entity_flags
+{
+    SEF_ISTEXTURE = 1,//entity use some texture for its appearance
+    SEF_ISSTRING = 1 << 1,//entity use some text for its appearance
+};

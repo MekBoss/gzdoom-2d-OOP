@@ -3,5 +3,5 @@ class entity_state
 {
     name state_name;//name of the state(used for state searching)
     textureid state_picture;//picture for the state
-    int state_time;//time (in 1/35 seconds)  in which screen entity should be before destroying/going to the next state
+    double state_time;//time (in 1/35 seconds) which screen entity should show some picture, before changin it
 }

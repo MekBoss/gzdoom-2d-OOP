@@ -1,0 +1,186 @@
+class screen_entity ui
+{
+//pointer to event which "tick" this object
+protected staticeventhandler ticker;
+
+//set default values for entity to "im in the middle of the screen"
+//so it defenitelly can be seen, in case of "why nothing whos up?"
+protected void init_defaults(vector2 pos = (-1, -1) )
+{
+    scale = (1, 1);
+    if(pos == (-1, -1) )
+        screen_pos = pos;
+    else
+        screen_pos = (screen.GetWidth() / 2, screen.Getheight() / 2);
+    
+    velocity = (0, 0);
+    alpha = 1;
+}
+
+//default init function
+virtual screen_entity init(staticeventhandler owner, vector2 pos = (-1, -1), int spawn_layer = 0, name ls = "", name vs = "" )
+{
+    ticker = owner;
+    layer_number = spawn_layer;
+    init_logic_state(ls);
+    init_visual_state(vs);
+    init_defaults(pos);
+    return self;
+}
+
+protected void init_logic_state(name n)
+{
+    state_l = logic_state(new(n));
+    logic_state(state_l).init();
+}
+protected void init_visual_state(name n)
+{
+    state_v = visual_state(new(n));
+    visual_state(state_v).init();
+}
+
+
+
+//bitfield, store states (condition) of a entity 
+protected uint entity_flag;
+uint get_flag() const
+{
+    return entity_flag;
+}
+
+
+
+
+
+//position on the screen (of the left upper corner)
+protected vector2 screen_pos;
+vector2 get_pos() const
+{
+    return screen_pos;
+}
+
+//entity velocity on screen
+protected vector2 velocity;
+vector2 get_velocity() const
+{
+    return velocity;
+}
+
+//scale of a picture
+protected vector2 scale;
+vector2 get_scale() const
+{
+    return scale;
+}
+
+//time (1/35 seconds) from last state changing
+protected double tics;
+uint get_tics() const
+{
+    return tics;
+}
+
+//store layer of entity
+protected int layer_number;
+int get_layer() const
+{
+    return layer_number;
+}
+void change_layer(int l)
+{
+    layer_number = l;
+}
+
+//default alpha meaning
+protected double alpha;
+double get_alpha() const
+{
+    return alpha;
+}
+
+//angle of a picture
+protected double angle;
+double get_angle() const
+{
+    return angle;
+}
+
+
+
+//store names of the previous, current and next state
+protected entity_state prev_state, cur_state, next_state;
+
+entity_state entity_find_state(name state_name)
+{
+    return null;
+}
+
+protected logic_state state_l;
+//tick entity virtual
+//called from screen_ticker event uitick function
+//responsible for calling actions (spawning of aditional entities, movinig, etc)
+virtual void entity_logic_tick()
+{
+    tics--;
+
+    screen_pos += velocity;
+
+    if(!state_l) self.destroy();
+}
+
+
+//store actors visual apeearance here
+protected visual_state state_v;
+//get entity texture
+textureid get_texture() const
+{
+    if(state_v)
+        return visual_state(state_v).picture;
+
+    else return texman.CheckForTexture("", TexMan.TYPE_ANY);
+}
+
+//get entity string
+string get_string() const
+{
+    if(state_v)
+        return visual_state(state_v).text;
+
+    else return "";
+}
+
+protected double visual_tics;
+//tick entity virtual
+//called from screen_ticker event renderoverlay function
+//responsible for entity appearance (text or texture, alpha, scale, etc.)
+virtual void entity_visual_tick(double tick_fraction)
+{
+    if(tick_fraction > 1) return;//something goes very wrong
+    
+    ;
+}
+
+}
+
+//visual state base
+class visual_state
+{
+    virtual void init()
+    {}
+
+    textureid picture;
+    string text;
+    double tics;
+    visual_state next_state;
+}
+
+//logical state base
+class logic_state
+{
+    virtual void init()
+    {}
+
+    int tics;
+    logic_state next_state;
+}
+

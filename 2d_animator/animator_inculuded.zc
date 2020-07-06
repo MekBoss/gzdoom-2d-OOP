@@ -1,10 +1,13 @@
-#include "2d_animator/lump_parser/parser_base.zc"
-#include "2d_animator/lump_parser/constants.zc"
+#include "2d_animator/lump_parser/c_like_parser.zc"
+#include "2d_animator/code_generator/code_generator.zc"
 
 
 #include "2d_animator/2d_classes/state_base.zc"
-#include "2d_animator/2d_classes/screen_ticker.zc"
-#include "2d_animator/2d_classes/screen_entity.zc"
+#include "2d_animator/2d_classes/back_end/screen_ticker.zc"
+#include "2d_animator/2d_classes/back_end/screen_entity.zc"
+
+#include "2d_animator/2d_classes/front_end/entity_constructor.zc"
+
 #include "2d_animator/2d_classes/test_entities.zc"
 #include "2d_animator/2d_classes/constants.zc"
 

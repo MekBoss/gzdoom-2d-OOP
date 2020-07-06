@@ -1,15 +1,30 @@
 //event handler which think for all 2d entities and store them
-class screen_animator : staticeventhandler
+class screen_animator : eventhandler
 {
 //store here all parsed states for 2d entities
-private array<entity_state> entity_states;
+private array<entity_state> blueprint_entity;
+//since almost all things related to 2d 
+private vector2 original_resolution;
 //read 2d_states lump and construct states for 2d entities
-private void read_state_lump(string lump_name = "2d_states")
-{}
+private void get_parsed_entities(in out array<string> data, in out array<entity_state> sa, in out vector2 res)
+{
+
+}
+
+private void read_lump(string lump_name, in out array<string> data)
+{
+    c_like_parser r = c_like_parser(new("c_like_parser") );
+
+    r.read_lump(lump_name, data);
+
+    r.destroy();
+}
 
 override void onregister()
 {
-    read_state_lump();
+    array<string> lump_data; lump_data.clear();
+    read_lump("2d_states", lump_data);
+    get_parsed_entities(lump_data, blueprint_entity, original_resolution);
 }
 
 
@@ -104,6 +119,7 @@ override void UiTick()
 
     if(!init_entity)
     {
+        S_StartSound("weapons/pistol", 0, 1, CHANF_UI);
         create_new_enity("fire_spawner");        
         init_entity = true;
     }
@@ -131,7 +147,7 @@ protected virtual ui void tick_2d_entities()
                         if(specific_layer.layer_entites[j])
                         {
                             let entity = screen_entity(specific_layer.layer_entites[j]);
-                            entity.screen_entity_tick();
+                            entity.entity_logic_tick();
                         }
 
                         else
@@ -179,19 +195,33 @@ protected virtual ui void render_2d_entities(double tick_fraction = 0)
                     {
                         let entity = screen_entity(specific_layer.layer_entites[j]);
                     
-                        draw_entity_texture(
-                            entity.get_texture(),
-                            entity.get_pos() + (entity.get_velocity() * tick_fraction),
-                            entity.get_scale(),
-                            entity.get_alpha()
-                        );
-                    
+                        entity.entity_visual_tick(tick_fraction);
+
+                        if(entity.get_flag() & SEF_ISTEXTURE)
+                        {
+                            draw_entity_texture(
+                                entity.get_texture(),
+                                entity.get_pos() + (entity.get_velocity() * tick_fraction),
+                                entity.get_scale(),
+                                entity.get_alpha()
+                            );
+                        }
+
+                        if(entity.get_flag() & SEF_ISSTRING)
+                        {
+                            draw_entity_string(
+                                entity.get_string(),
+                                Font.CR_WHITE,
+                                entity.get_pos() + (entity.get_velocity() * tick_fraction),
+                                entity.get_scale(),
+                                entity.get_alpha()
+                            );
+                        }
                     }
                 }
             }
         }
     }
-
 }
 
 //wrapper around  gzdoom drawing API
@@ -204,6 +234,19 @@ private ui void draw_entity_texture(textureid tex, vector2 pos = (0, 0), vector2
         [x_size, y_size] = TexMan.getsize(tex);
 
         Screen.DrawTexture(tex, false, int(pos.x), int(pos.y), DTA_Alpha, alpha, DTA_CenterOffset, true, DTA_DestWidth, int(x_size * scale.x), DTA_DestHeight, int(y_size * scale.y) );
+    }
+}
+
+//same goes here
+//note, size argument is a SIZE of a SINGLE letter, not SCALE of a letter, not SCALE of a whole string, etc
+private ui void draw_entity_string(string st, color font_color = Font.CR_BRICK, vector2 pos = (0, 0), vector2 size = (1, 1), double alpha = 1 )
+{
+    if(st)
+    {
+        int l;
+        l = st.length();
+
+        Screen.DrawText(bigfont, font_color, int(pos.x - (size.x * l) / 2), int(pos.y - size.y / 2), st, DTA_Alpha, alpha, DTA_CellX, int(size.x), DTA_CellY, int(size.y) );
     }
 }
 

@@ -1,0 +1,81 @@
+class entity_constructor
+{
+
+//store state of pфrsing here (in object definition/in object states/etc)
+private uint state_of_parsing;
+
+//store how much times parser enter in any kind of brackets
+private uint nesting_level;
+
+enum states_state//tautological tautology
+{
+    SS_FINDRESOLUTION = 1,//set if original resolution was found
+    SS_INOBJECTDEF = 1<<1,//inside object definition
+    SS_INOBJECTPROPERTIES = 1 <<2,//in object properties
+    SS_INOBJECTLOGISTATES = 1<<3,//in object logic states (which call functions)
+    SS_INOBJECTRENDERSTATES = 1<<4,//in object render states (appearance of object)
+    SS_INLOGICFUNCTIONS = 1<<5,//in general logic state function definition (inside state {} brackets)
+    SS_INLOGICSPECFUNCTION = 1<<6,//in logic state specific function (function_name(arguments) )
+};
+//pending entity for filling with data
+private entity_state wait_for_filling;
+
+
+void construct_entity(in out array<string> raw_data)
+{
+    {
+        {
+            //begin transforming of text to code (magic)
+            //firstly need to store "default" resolution which was used on defining of all entities
+            if(!(state_of_parsing & SS_FINDRESOLUTION) )
+            {
+                for(uint i = 0; i <= raw_data.size(); i++)
+                {
+                    //safety measures
+                    if(i >= raw_data.size() )
+                    {
+                        console.printf("cant find \"original resolution\" parameter, break parsing" );
+                        break;
+                    }
+
+                    if(raw_data[i] && raw_data[i] == "original_resolution" && 
+                        raw_data[i+1] && raw_data[i+1] == "=" &&
+                        raw_data[i+2] && raw_data[i+2] == "("
+                    )
+                    {
+                        state_of_parsing |= SS_FINDRESOLUTION;
+                        //resolution = (raw_data[i+3].toint(10), raw_data[i+5].toint(10));
+                        break;
+                    }
+                }
+            }
+            //just in case
+            if(!(state_of_parsing & SS_FINDRESOLUTION) ) return;
+
+            int definition_start = -1;
+            for(uint i = 0; i <= raw_data.size(); i++)
+            {
+                if(i >= raw_data.size() )
+                {
+                    break;
+                }
+
+                if(raw_data[i])
+                {
+                    if( !(state_of_parsing & SS_INOBJECTDEF) && raw_data[i] == "class_2d" )
+                    {
+                        definition_start = i;
+                        state_of_parsing |= SS_INOBJECTDEF;
+                    }
+
+                    if(state_of_parsing & SS_INOBJECTDEF)
+                    {
+                        //if()
+                    }
+                }
+            }
+        }
+    }
+}
+
+}
