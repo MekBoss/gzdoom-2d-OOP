@@ -2,15 +2,16 @@
 class screen_animator : eventhandler
 {
 //store here all parsed states for 2d entities
-private array<entity_state> blueprint_entity;
+private array<entity_state> blueprints_entity;
 //since almost all things related to 2d 
 private vector2 original_resolution;
-//read 2d_states lump and construct states for 2d entities
+//construct from array of strings 2d entities
 private void get_parsed_entities(in out array<string> data, in out array<entity_state> sa, in out vector2 res)
 {
 
 }
 
+//transform specific lump into array of strings, for future processing
 private void read_lump(string lump_name, in out array<string> data)
 {
     c_like_parser r = c_like_parser(new("c_like_parser") );
@@ -24,16 +25,16 @@ override void onregister()
 {
     array<string> lump_data; lump_data.clear();
     read_lump("2d_states", lump_data);
-    get_parsed_entities(lump_data, blueprint_entity, original_resolution);
+    get_parsed_entities(lump_data, blueprints_entity, original_resolution);
 }
 
 
 
 //create fresh entity for screen
 //static so that it can be acesset from everywhere
-ui screen_entity create_new_enity(name type = '', vector2 pos = (0, 0), int layer = 0)
+ui screen_entity create_new_enity(name type, int layer, name vis_state, name log_state, vector2 pos, vector2 vel = (0, 0), vector2 scale = (1, 1), double alpha = 1)
 {
-    screen_entity se = screen_entity(new(type)).init(self, pos, layer);
+    screen_entity se = screen_entity(new(type)).init(self, layer, vis_state, log_state, pos, vel, scale, alpha);
 
     if(se)
     {
@@ -116,11 +117,13 @@ override void UiTick()
         init_entity = false;
         return;
     }
+    if(menuactive != 0) return;
+    console.printf("%i", gameaction);
 
     if(!init_entity)
     {
-        S_StartSound("weapons/pistol", 0, 1, CHANF_UI);
-        create_new_enity("fire_spawner");        
+        //S_StartSound("weapons/pistol", 0, 1, CHANF_UI);
+        create_new_enity('fire_spawner', 0, 'no_visual', 'no_logic', (screen.getwidth()/2, screen.getheight()/2) );
         init_entity = true;
     }
     tick_2d_entities();
@@ -197,7 +200,7 @@ protected virtual ui void render_2d_entities(double tick_fraction = 0)
                     
                         entity.entity_visual_tick(tick_fraction);
 
-                        if(entity.get_flag() & SEF_ISTEXTURE)
+                        if(entity.get_texture())
                         {
                             draw_entity_texture(
                                 entity.get_texture(),
@@ -207,7 +210,7 @@ protected virtual ui void render_2d_entities(double tick_fraction = 0)
                             );
                         }
 
-                        if(entity.get_flag() & SEF_ISSTRING)
+                        if(entity.get_string())
                         {
                             draw_entity_string(
                                 entity.get_string(),

@@ -1,42 +1,57 @@
 class screen_entity ui
 {
 //pointer to event which "tick" this object
-protected staticeventhandler ticker;
+protected staticeventhandler global_ticker;
 
-//set default values for entity to "im in the middle of the screen"
-//so it defenitelly can be seen, in case of "why nothing whos up?"
-protected void init_defaults(vector2 pos = (-1, -1) )
+protected screen_entity spawn_entity(name type, int layer, name vis_state, name log_state, vector2 pos, vector2 vel = (0, 0), vector2 scale = (1, 1), double alpha = 1)
 {
-    scale = (1, 1);
-    if(pos == (-1, -1) )
-        screen_pos = pos;
-    else
-        screen_pos = (screen.GetWidth() / 2, screen.Getheight() / 2);
-    
-    velocity = (0, 0);
-    alpha = 1;
+    if(global_ticker)
+        return screen_animator(global_ticker).create_new_enity(type, layer, vis_state, log_state, pos, vel, scale, alpha);
+
+    else return null;
 }
 
 //default init function
-virtual screen_entity init(staticeventhandler owner, vector2 pos = (-1, -1), int spawn_layer = 0, name ls = "", name vs = "" )
+virtual screen_entity init(staticeventhandler owner, int spawn_layer = 0, name vis_st = "", name log_st = "", vector2 pos = (-1, -1), vector2 vel = (0, 0), vector2 sc = (1, 1), double alph = 1)
 {
-    ticker = owner;
+    global_ticker = owner;
     layer_number = spawn_layer;
-    init_logic_state(ls);
-    init_visual_state(vs);
-    init_defaults(pos);
+    init_visual_state(vis_st);
+    init_logic_state(log_st);
+    screen_pos = pos;
+    velocity = vel;
+    scale = sc;
+    alpha = alph;
     return self;
 }
 
 protected void init_logic_state(name n)
 {
-    state_l = logic_state(new(n));
-    logic_state(state_l).init();
+    if(n)
+    {
+        state_l = logic_state(new(n));
+        if(state_l)
+            logic_state(state_l).init();
+        else
+            console.printf("cant find %s logic state", n);
+    }
+
+    else if(state_l)
+        state_l.destroy();
 }
 protected void init_visual_state(name n)
 {
-    state_v = visual_state(new(n));
-    visual_state(state_v).init();
+    if(n)
+    {
+        state_v = visual_state(new(n));
+        if(state_v)
+            visual_state(state_v).init();
+        else
+            console.printf("cant find %s visual state", n);
+    }
+
+    else if (state_v)
+        state_v.destroy();
 }
 
 
@@ -74,10 +89,10 @@ vector2 get_scale() const
 }
 
 //time (1/35 seconds) from last state changing
-protected double tics;
+protected double entity_tics;
 uint get_tics() const
 {
-    return tics;
+    return entity_tics;
 }
 
 //store layer of entity
@@ -107,25 +122,38 @@ double get_angle() const
 
 
 
-//store names of the previous, current and next state
-protected entity_state prev_state, cur_state, next_state;
-
-entity_state entity_find_state(name state_name)
-{
-    return null;
-}
-
 protected logic_state state_l;
 //tick entity virtual
 //called from screen_ticker event uitick function
 //responsible for calling actions (spawning of aditional entities, movinig, etc)
 virtual void entity_logic_tick()
 {
-    tics--;
-
     screen_pos += velocity;
 
-    if(!state_l) self.destroy();
+    if(!state_l)
+    {
+        destroy();
+        return;
+    }
+
+    let actions = logic_state(state_l);
+    //if still have time to tick
+	if(actions.tics != -1)
+	{
+		if (--actions.tics <= 0)
+		{
+			if (!actions.next_logic_state)
+                self.destroy();
+            else
+                init_logic_state(actions.next_logic_state);
+		}
+	}
+    //else, check visual states. if it absent, self destroys
+    else
+    {
+        if(!state_v)
+            self.destroy();
+    }
 }
 
 
@@ -155,12 +183,70 @@ protected double visual_tics;
 //responsible for entity appearance (text or texture, alpha, scale, etc.)
 virtual void entity_visual_tick(double tick_fraction)
 {
-    if(tick_fraction > 1) return;//something goes very wrong
+    if(!state_v) return;//invisible entity, probably exist for some action(s)
+    if(tick_fraction >= 1) return;//something goes very wrong
+
+    let appearance = visual_state(state_v);
+
+	if (appearance.tics > 0)
+	{
+        if(visual_tics > tick_fraction)
+            visual_tics = tick_fraction;
+
+        //console.printf("tick fraction is %f, visual_tics %f", tick_fraction, visual_tics);
+        //since each frame rendering happens between logic (uniform aka EXACT 1/35 seconds) tics
+        //we need to store previous tick fraction duration
+        //and only the subtract it difference from visual state tick duration
+        double tick_diff = tick_fraction - visual_tics;
+        appearance.tics -= abs(tick_diff);
+        //console.printf("tick difference %f", tick_diff);
+		if (appearance.tics <= 0)
+		{
+            visual_tics = 0;
+			if (!appearance.next_visual_state)
+            {
+                appearance.destroy();
+                return;//"garbage collection" happens in logic state tick
+            }
+            else
+            {
+                alpha -= 0.1;
+                scale *= 1.05;
+                visual_tics = 0;
+                init_visual_state(appearance.next_visual_state);
+                return;
+            }
+        }
+        visual_tics = tick_fraction;
+	}
     
-    ;
 }
 
 }
+
+//logical state base
+class logic_state
+{
+    virtual void init()
+    {}
+
+    int tics;
+    name next_logic_state;
+    name logic_state_name;
+}
+
+//technical state, mean "do nothing"
+//for entity this mean "exist as long as it have some visual state"
+class no_logic : logic_state
+{
+    override void init()
+    {
+        tics = -1;
+        next_logic_state = "no_logic";
+    }
+}
+
+
 
 //visual state base
 class visual_state
@@ -171,16 +257,18 @@ class visual_state
     textureid picture;
     string text;
     double tics;
-    visual_state next_state;
+    name next_visual_state;
+    name visual_state_name;
 }
 
-//logical state base
-class logic_state
+//technical state, mean "show nothing"
+class no_visual : visual_state
 {
-    virtual void init()
-    {}
-
-    int tics;
-    logic_state next_state;
+    override void init()
+    {
+        picture = texman.CheckForTexture("", TexMan.TYPE_ANY);
+        text = "";
+        tics = -1;
+        next_visual_state = "no_visual";
+    }
 }
-

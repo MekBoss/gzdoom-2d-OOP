@@ -1,50 +1,116 @@
 
 class fire_spawner : screen_entity
 {
-override screen_entity init(staticeventhandler owner, vector2 pos, int spawn_layer)
+override screen_entity init(staticeventhandler owner, int spawn_layer, name log_st, name vis_st, vector2 pos, vector2 vel, vector2 sc, double alph)
 {
-    ticker = owner;
-    layer_number = spawn_layer;
-    init_defaults(pos);
+    super.init(owner, spawn_layer, log_st, vis_st, pos, vel, sc, alph);
+    init_logic_state("no_logic");
     return self;
 }
 
-screen_entity fire;
-override void entity_logic_tick()
+//override void entity_logic_tick()
+override void entity_visual_tick(double tick_fraction)
 {
-    if(tics >= random(3, 5) )
+    //if(entity_tics >= random(3, 5) )
+    if(tick_fraction <= 0.3)
     {
-        fire = screen_animator(ticker).create_new_enity("burning_flame", (screen_pos + (100, -80) ) );
-        fire.velocity = (10 + frandom(-1, 1), -8 + frandom(-1, 1));
-
-        fire = screen_animator(ticker).create_new_enity("burning_flame", (screen_pos + (-100, -100)));
-        fire.velocity = (-10 + frandom(-1, 1), -10 + frandom(-1, 1));
-
-        fire = screen_animator(ticker).create_new_enity("burning_flame", (screen_pos + (0, 100)));
-        fire.velocity = (0 + frandom(-1, 1), 10 + frandom(-1, 1));
-
-        tics = 0;
+        spawn_entity("burning_flame", 0, 'fire_1', 'no_logic', (screen.getwidth()/2 + random(-10, 10), screen.getheight()/2 + random(-10, 10)), (15 + frandom(-5, 5), -8 + frandom(-5, 5) ) );
+        //spawn_entity("burning_flame", 0, 'fire_1', 'no_logic', (screen.getwidth()/2, screen.getheight()/2), (15 + frandom(-1, 1), -8 + frandom(-1, 1) ) );
+        //spawn_entity("burning_flame", 0, 'fire_1', 'no_logic', (screen.getwidth()/2, screen.getheight()/2), (15 + frandom(-1, 1), -8 + frandom(-1, 1) ) );
+        //spawn_entity("burning_flame", 0, 'fire_1', 'no_logic', (screen.getwidth()/2, screen.getheight()/2), (-10 + frandom(-1, 1), -10 + frandom(-1, 1) ) );
+        //spawn_entity("burning_flame", 0, 'fire_1', 'no_logic', (screen.getwidth()/2, screen.getheight()/2), (0 + frandom(-1, 1), 10 + frandom(-1, 1) ) );
     }
 
-    tics++;
+    if(tick_fraction >= 0.8)
+    {
+        //spawn_entity("burning_flame", 0, 'fire_1', 'no_logic', (screen.getwidth()/2, screen.getheight()/2), (15 + frandom(-2, 2), -8 + frandom(-2, 2) ) );
+    }
 }
 
 }
 
 class burning_flame : screen_entity
 {
-override screen_entity init(staticeventhandler owner, vector2 pos)
+override screen_entity init(staticeventhandler owner, int spawn_layer, name log_st, name vis_st, vector2 pos, vector2 vel, vector2 sc, double alph)
 {
-    init_defaults();
-
-    screen_pos = pos;
-    alpha = frandom(0.5, 0.9);
-    entity_flag |= SEF_ISTEXTURE;
-
-
-    velocity = (random(-10, 10), random(-10, 10) );
-    console.printf("pos is %f %f", screen_pos.x, screen_pos.y);
+    super.init(owner, spawn_layer, log_st, vis_st, pos, vel, sc, alph);
+    alpha = frandom(0.6, 0.7);
     return self;
 }
 
+}
+
+
+
+class fire_1 : visual_state
+{
+    override void init()
+    {
+        picture = texman.CheckForTexture("fire_1", TexMan.TYPE_ANY);
+        tics = 1.5 ;//+ frandom(-0.2, 0.2);
+        next_visual_state = "fire_2";
+    }
+}
+class fire_2 : visual_state
+{
+    override void init()
+    {
+        picture = texman.CheckForTexture("fire_2", TexMan.TYPE_ANY);
+        tics = 1.5 ;//+ frandom(-0.2, 0.2);
+        next_visual_state = "fire_3";
+    }
+}
+class fire_3 : visual_state
+{
+    override void init()
+    {
+        picture = texman.CheckForTexture("fire_3", TexMan.TYPE_ANY);
+        tics = 1.5 ;//+ frandom(-0.2, 0.2);
+        next_visual_state = "fire_4";
+    }
+}
+class fire_4 : visual_state
+{
+    override void init()
+    {
+        picture = texman.CheckForTexture("fire_4", TexMan.TYPE_ANY);
+        tics = 1.5 ;//+ frandom(-0.2, 0.2);
+        next_visual_state = "fire_5";
+    }
+}
+class fire_5 : visual_state
+{
+    override void init()
+    {
+        picture = texman.CheckForTexture("fire_5", TexMan.TYPE_ANY);
+        tics = 1.5 ;//+ frandom(-0.2, 0.2);
+        next_visual_state = "fire_6";
+    }
+}
+class fire_6 : visual_state
+{
+    override void init()
+    {
+        picture = texman.CheckForTexture("fire_6", TexMan.TYPE_ANY);
+        tics = 1.5 ;//+ frandom(-0.2, 0.2);
+        next_visual_state = "fire_7";
+    }
+}
+class fire_7 : visual_state
+{
+    override void init()
+    {
+        picture = texman.CheckForTexture("fire_7", TexMan.TYPE_ANY);
+        tics = 0.8 ;//+ frandom(-0.2, 0.2);
+        next_visual_state = "fire_8";
+    }
+}
+class fire_8 : visual_state
+{
+    override void init()
+    {
+        picture = texman.CheckForTexture("fire_8", TexMan.TYPE_ANY);
+        tics = 0.8 ;//+ frandom(-0.2, 0.2);
+        next_visual_state = "";
+    }
 }
